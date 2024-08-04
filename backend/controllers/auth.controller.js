@@ -1,13 +1,15 @@
+import { generateTokenAndSetCookie } from "../lib/utils/generateToken.js";
 import User from "../models/user.model.js";
 import bcrypt from "bcryptjs";
 
 export const signup = async (req, res) => {
   try {
     const { fullname, username, email, password } = req.body;
-    const emailRegex = "/^[^s@]+@[^s@]+.[^s@]+$/";
 
+    // console.log(fullname, username, email, password)
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      return res.status(400).json({ error: "Invalid email format." });
+      return res.status(400).json({ error: "Invalid email format" });
     }
 
     const existingUser = await User.findOne({ username });
@@ -15,9 +17,15 @@ export const signup = async (req, res) => {
       return res.status(400).json({ error: "Username is already taken." });
     }
 
-    const existingEmail = await User.findOne({ useremail });
+    const existingEmail = await User.findOne({ email });
     if (existingEmail) {
       return res.status(400).json({ error: "Email is already taken." });
+    }
+
+    if (password.length < 6) {
+      return res
+        .status(400)
+        .json({ error: "Password must be at least 6 character long." });
     }
 
     //hash password
@@ -55,13 +63,50 @@ export const signup = async (req, res) => {
 };
 
 export const login = async (req, res) => {
-  res.json({
-    data: "You hit the login endpoint.",
-  });
+  try {
+    const { username, password } = req.body;
+    const user = await User.findOne({ username });
+    const isPasswordCorrect = await bcrypt.compare(
+      password,
+      user?.password || ""
+    );
+
+    if (!user || !isPasswordCorrect) {
+      return res.status(400).json({ error: "Invalid username or password." });
+    }
+
+    generateTokenAndSetCookie(user._id, res);
+    res.status(200).json({
+      _id: user._id,
+        fullName: user.fullname,
+        username: user.username,
+        email: user.email,
+        followers: user.followers,
+        following: user.following,
+        profileImg: user.profileImg,
+        coverImg: user.coverImg,
+    })
+
+  } catch (error) {
+    console.log("Error in login controller", error.message);
+    res.status(500).json({ error: "Internal server error" });
+  }
 };
 
 export const logout = async (req, res) => {
-  res.json({
-    data: "You hit the logout endpoint.",
-  });
+  try {
+    res.cookie("jwt", "", { maxAge: 0 });
+    res.status(200).json({message: "Logged out successfully."})
+  } catch (error) {
+    console.log("Error in logout controller", error.message);
+    res.status(500).json({ error: "Internal server error" });
+  }
 };
+
+export const getMe = async (req, res) => {
+  try {
+    // const user = await User.findById(req.user._id);
+  } catch (error) {
+    
+  }
+}

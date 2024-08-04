@@ -8,6 +8,7 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 app.use(express.json()); //to parse req.body
+app.use(express.urlencoded({ extended: true })); // to parse theform data(urlencoded)
 
 app.use("/api/auth", authRoutes);
 
