@@ -78,15 +78,14 @@ export const login = async (req, res) => {
     generateTokenAndSetCookie(user._id, res);
     res.status(200).json({
       _id: user._id,
-        fullName: user.fullname,
-        username: user.username,
-        email: user.email,
-        followers: user.followers,
-        following: user.following,
-        profileImg: user.profileImg,
-        coverImg: user.coverImg,
-    })
-
+      fullName: user.fullname,
+      username: user.username,
+      email: user.email,
+      followers: user.followers,
+      following: user.following,
+      profileImg: user.profileImg,
+      coverImg: user.coverImg,
+    });
   } catch (error) {
     console.log("Error in login controller", error.message);
     res.status(500).json({ error: "Internal server error" });
@@ -96,7 +95,7 @@ export const login = async (req, res) => {
 export const logout = async (req, res) => {
   try {
     res.cookie("jwt", "", { maxAge: 0 });
-    res.status(200).json({message: "Logged out successfully."})
+    res.status(200).json({ message: "Logged out successfully." });
   } catch (error) {
     console.log("Error in logout controller", error.message);
     res.status(500).json({ error: "Internal server error" });
@@ -105,8 +104,10 @@ export const logout = async (req, res) => {
 
 export const getMe = async (req, res) => {
   try {
-    // const user = await User.findById(req.user._id);
+    const user = await User.findById(req.user._id).select("-password");
+    res.status(200).json(user);
   } catch (error) {
-    
+    console.log("Error in getme controller", error.message);
+    res.status(500).json({ error: "Internal server error" });
   }
-}
+};
