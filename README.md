@@ -1,1 +1,1 @@
-# X Clone
+# Full Stack Social Media App
