@@ -5,7 +5,7 @@ import XSvg from "../../../components/svgs/X";
 
 import { MdOutlineMail } from "react-icons/md";
 import { MdPassword } from "react-icons/md";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 
 const LoginPage = () => {
@@ -13,6 +13,7 @@ const LoginPage = () => {
     username: "",
     password: "",
   });
+  const queryClient = useQueryClient();
 
   const {
     mutate: loginMutation,
@@ -33,7 +34,7 @@ const LoginPage = () => {
         if (!res.ok) {
           throw new Error(data.error || "Something went wrong");
         }
-        toast.success("Login successful.");
+        // toast.success("Login successful.");
       } catch (error) {
         toast.error(error.message);
         throw new Error(error);
@@ -41,6 +42,9 @@ const LoginPage = () => {
     },
     onSuccess: () => {
       toast.success("Login successful.");
+      //Refetch the authUser
+      //This will run method to fetch authUser and as we have logic to go to hompage once we have user it will redirect end user
+      queryClient.invalidateQueries({ queryKey: ["authUser"] });
     },
   });
 
