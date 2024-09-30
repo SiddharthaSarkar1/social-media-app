@@ -54,36 +54,37 @@ const ProfilePage = () => {
   });
 
   //This is basically to update the cover image and the profile image of user.
-  const { mutate: updateProfile, isPending: isUpdatingProfile } = useMutation({
-    mutationFn: async () => {
-      try {
-        const res = await fetch("/api/users/update", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ coverImg, profileImg }),
-        });
-        const data = await res.json();
+  const { mutateAsync: updateProfile, isPending: isUpdatingProfile } =
+    useMutation({
+      mutationFn: async () => {
+        try {
+          const res = await fetch("/api/users/update", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ coverImg, profileImg }),
+          });
+          const data = await res.json();
 
-        if (!res.ok) {
-          throw new Error(data.error || "Something went wrong.");
+          if (!res.ok) {
+            throw new Error(data.error || "Something went wrong.");
+          }
+        } catch (error) {
+          throw new Error(error);
         }
-      } catch (error) {
-        throw new Error(error);
-      }
-    },
-    onSuccess: () => {
-      toast.success("Profile updated successfully.");
-      Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["authUser"] }),
-        queryClient.invalidateQueries({ queryKey: ["userProfile"] }),
-      ]);
-    },
-    onError: () => {
-      toast.error(error.message);
-    },
-  });
+      },
+      onSuccess: () => {
+        toast.success("Profile updated successfully.");
+        Promise.all([
+          queryClient.invalidateQueries({ queryKey: ["authUser"] }),
+          queryClient.invalidateQueries({ queryKey: ["userProfile"] }),
+        ]);
+      },
+      onError: () => {
+        toast.error(error.message);
+      },
+    });
 
   const isMyProfile = authUser._id === user?._id;
   const memberSinceDate = formatMemberSinceDate(user?.createdAt);
@@ -191,7 +192,11 @@ const ProfilePage = () => {
                 {(coverImg || profileImg) && (
                   <button
                     className="btn btn-primary rounded-full btn-sm text-white px-4 ml-2"
-                    onClick={() => updateProfile()}
+                    onClick={async () => {
+                      await updateProfile();
+                      setCoverImg(null);
+                      setProfileImg(null);
+                    }}
                   >
                     {isUpdatingProfile ? (
                       <LoadingSpinner size="sm" />
